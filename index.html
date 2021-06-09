@@ -94,10 +94,27 @@
 
         //遊戲開始
         window.onload = function () {
+
+
             const btn = document.querySelector('#btn');
             btn.onclick = function () {
 
                 answer_array = []
+
+
+                var temp = new Date();
+                function checktime() {
+                    var now = new Date(),
+                        diff = new Date(now - temp);
+                    document.getElementById("time").innerText = diff.Myformat();
+                }
+
+                Date.prototype.Myformat = function () {
+                    return ("0" + this.getUTCHours()).slice(-2) + ":" + ("0" + this.getUTCMinutes()).slice(-2) + ":" + ("0" + this.getUTCSeconds()).slice(-2)
+                }
+
+                setInterval(checktime, 1000);
+                
 
                 document.getElementById('done').innerHTML = ""
 
@@ -137,6 +154,7 @@
             });
 
         }
+
 
 
         //難度選擇
@@ -552,6 +570,7 @@
             <input type="button" id="btn" value="Play">
 
             <span id="done"></span>
+            <span id="Check_Txt" style="color:red">時間計數：<span id="time"></span></span>
 
         </div>
 
