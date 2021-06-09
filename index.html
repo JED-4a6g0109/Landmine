@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>踩地雷</title>
+    <style>
+        body {
+            background-image: url("https://github.com/JED-4a6g0109/public-project/blob/master/image.png?raw=true");
+        }
+
+        .game {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 1px 4px (0, 0, 0, 0.5);
+            padding: 15px;
+            background-color: rgb(255, 255, 255);
+            border-radius: 5px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 80px 80px 80px 80px;
+            grid-template-rows: 80px 80px 80px 80px;
+            border: 1px solid black;
+        }
+
+        .grid button {
+            background-color: wheat;
+            color: black;
+            font-size: 25px;
+            font-weight: bold;
+            border: 1px solid black;
+        }
+
+        .footer {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .footer input {
+            border: none;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 5px;
+            box-shadow: 0 1px 4px (0, 0, 0, 0.5);
+            padding: 5px;
+            width: 80px;
+            background-color: black;
+            color: white;
+        }
+
+        .area {
+            border: 1px solid black;
+            width: 160px;
+        }
+
+        .footer span {
+            flex: 1px;
+            text-align: right;
+            font-size: 20px;
+            color: black;
+            font-weight: bold;
+            margin: auto 0;
+        }
+
+        .button:hover {
+            background-color: #b8b9b8;
+        }
+    </style>
+
+    <script>
+        var new_array = [];
+
+        var answer_array = [];
+
+        var game_array = [];
+
+        var game_array_tmp = [];
+
+        var game_array2D = []
+
+
+        let range = 0;
+        var landmine
+
+        var count = 0;
+
+        var node = []
+        let lands
+        var nodeN0 = []
+
+        //遊戲開始
+        window.onload = function () {
+            const btn = document.querySelector('#btn');
+            btn.onclick = function () {
+
+                answer_array = []
+
+                document.getElementById('done').innerHTML = ""
+
+                const rbs = document.querySelectorAll('input[name="select"]');
+                let selectedValue;
+                for (const rb of rbs) {
+                    if (rb.checked) {
+                        selectedValue = rb.value;
+                        break;
+                    }
+                }
+                hard(selectedValue);
+                range = selectedValue;
+                create_map()
+
+                game_array2D = dimension_convert(game_array, count)
+                console.log("遊戲地圖", game_array2D)
+                lands = findLand(game_array2D)
+                console.log("lands found: ", lands.length)
+
+
+
+                console.log("lands: ", lands)
+            };
+
+
+            element.onmousedown = function (eventData) {
+                if (eventData.button === 0) {
+                    console.log("From JS: the (left?) button is down!")
+                }
+            }
+
+            $("#element").ready(function () {
+                $("div").mousedown(function (de) {
+                    console.log("From JQuery: which=" + de.which);
+                });
+            });
+
+        }
+
+
+        //難度選擇
+        function hard(select) {
+            var diff = select;
+
+            remove_button()
+
+            if (select == "9") {
+                count = 9
+                landmine = 10
+                document.getElementById("grid").setAttribute("style", "grid-template-columns: 80px 80px 80px 80px 80px 80px 80px 80px 80px; grid-template-rows: 80px 80px 80px 80px 80px 80px 80px 80px 80px;");
+                document.getElementById("grid").setAttribute("style", "grid-template-columns: 80px 80px 80px 80px 80px 80px 80px 80px 80px; grid-template-rows: 80px 80px 80px 80px 80px 80px 80px 80px 80px;");
+                init_button(count)
+
+            }
+            else if (select == "16") {
+                count = 16
+                landmine = 40
+
+                document.getElementById("grid").setAttribute("style", "grid-template-columns: 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px; grid-template-rows: 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px;");
+                document.getElementById("grid").setAttribute("style", "grid-template-columns: 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px; grid-template-rows: 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px 80px;");
+                init_button(count)
+
+            }
+            else {
+                count = 16
+                landmine = 40
+
+                document.getElementById("grid").setAttribute("style", "grid-template-columns: 80px 80px 80px 80px 80px 80px 80px 80px 80px; grid-template-rows: 80px 80px 80px 80px 80px 80px 80px 80px 80px;");
+                document.getElementById("grid").setAttribute("style", "grid-template-columns: 80px 80px 80px 80px 80px 80px 80px 80px 80px; grid-template-rows: 80px 80px 80px 80px 80px 80px 80px 80px 80px;");
+                init_button(7)
+
+            }
+        }
+
+        //清空所有按鈕
+        function remove_button() {
+            const removebutton = document.getElementById("grid");
+            removebutton.innerHTML = '';
+        }
+
+
+        //未洗牌
+        function init_button(count) {
+            let square = count * count
+            var init_array = [];
+
+            for (var i = 1; i <= square; i++) {
+                if (i <= 10) {
+                    init_array.push(i)
+                    answer_array.push(i)
+                } else {
+                    init_array.push(i)
+                    answer_array.push(i)
+                }
+
+
+            }
+
+
+            shuffle_array = shuffle(init_array)
+
+            create_button(shuffle_array, "create")
+
+            new_array = dimension_convert(shuffle_array, count)
+
+            console.log("原始地圖", new_array)
+
+
+
+        }
+
+        //按鈕建立
+        function create_button(shuffle_array, status) {
+            for (j = 0; j < shuffle_array.length; j++) {
+                var container = document.getElementById('grid');
+                var button = document.createElement('button');
+
+                if (shuffle_array[j] == 0) {
+                    button.setAttribute("id", 0);
+                    button.setAttribute("class", "button");
+                    button.setAttribute("onclick", "push(this.id)");
+                    button.innerText = "";
+
+                } else {
+                    button.setAttribute("id", shuffle_array[j]);
+                    button.setAttribute("class", "button");
+                    button.setAttribute("onclick", "push(this.id)");
+
+                    if (status == "create") {
+                        button.innerText = "";
+                    } else {
+                        button.innerText = shuffle_array[j];
+                        button.setAttribute("style", "background-color: white;")
+
+                    }
+                }
+                container.appendChild(button);
+            }
+        }
+
+
+
+        //二維
+        function dimension_convert(array, split) {
+
+            const newArr = [];
+            while (array.length) newArr.push(array.splice(0, split));
+            return newArr
+
+        }
+
+        //洗牌
+        function shuffle(arr) {
+            arr.sort(() => Math.random() - 0.5)
+            return arr
+        }
+
+
+        function push(clicked_id) {
+
+            var res = false
+            var group = 0
+
+            for (var i = 0; i < new_array.length; i++) {
+
+                for (var j = 0; j < new_array[i].length; j++) {
+                    if (clicked_id == new_array[i][j]) {
+                        bombs = find_bomb(i, j)
+                        if (bombs == "*") {
+                            remove_button()
+                            create_button(game_array_tmp, "boom")
+                            document.getElementById('done').innerHTML = "GG你自爆了"
+
+
+                        } else if (bombs > 0) {//附近有炸彈
+                            var btn = document.getElementById(new_array[i][j]);
+                            btn.setAttribute("style", "background-color: white;")
+
+                            btn.innerText = bombs;
+                        } else {//九宮格沒炸彈開始flood fill九宮格演算法，並打開出所有空白九宮格的所有格子
+
+                            for (var k = 0; k < lands.length; k++) {
+
+                                for (var z = 0; z < lands[k].length; z++) {
+
+
+
+                                    //轉換成整數
+                                    var string = lands[k][z];
+                                    var array = string.replace(/, +/g, ",").split(",").map(Number);
+
+
+                                    // console.log([i,j])
+                                    // console.log(array)
+
+
+                                    //陣列比對與找出0群組
+                                    retur_boolean = array_compare([i, j], array)
+
+                                    if (retur_boolean == true) {
+                                        group = k
+                                        res = true
+                                        break
+                                    }
+
+                                }
+
+                                if (res == true) {
+                                    break
+                                }
+                            }
+
+
+                            console.log("在第", k, "群裡面")
+                            console.log("在第", lands[k], "群裡面")
+
+                            flood_fill(lands[k])
+
+
+
+
+
+                        }
+                        console.log(bombs)
+                    }
+
+
+                }
+            }
+
+        }
+
+
+        //按鈕按下開始傳入id，並尋找2d array (x,y)
+        function create_map() {
+            game_array = []
+            game_array_tmp = []
+            let zore_point;
+            for (var i = 0; i < new_array.length; i++) {
+
+                for (var j = 0; j < new_array[i].length; j++) {
+                    bombs = find_bomb(i, j)
+                    game_array.push(bombs)
+                    game_array_tmp.push(bombs)
+
+
+
+                }
+            }
+
+
+        }
+
+        //一維判斷是否完成拼圖
+        function done(array) {
+            if (JSON.stringify(array) == JSON.stringify(answer_array)) {
+                document.getElementById('done').innerHTML = "過關!"
+                return "done"
+            }
+
+        }
+
+
+        //前後左右演算法，尋找是否有為0的陣列在附近
+        function find_bomb(i, j) {
+
+            var bombs = 0
+
+
+
+
+
+
+            //原點
+            //右下range不得超過陣列大小,左上不得負數
+            if (new_array[i][j] > landmine) {
+                if ((j + 1 < range) && new_array[i][j + 1] <= landmine) { bombs += 1 }//右 
+                if ((j - 1 >= 0) && new_array[i][j - 1] <= landmine) { bombs += 1 }//左
+                if ((i - 1 >= 0) && new_array[i - 1][j] <= landmine) { bombs += 1 }//上
+                if ((i + 1 < range) && new_array[i + 1][j] <= landmine) { bombs += 1 }//下
+
+                if ((i - 1 >= 0 && j + 1 < range) && new_array[i - 1][j + 1] <= landmine) { bombs += 1 }//右上
+                if ((i - 1 >= 0 && j - 1 >= 0) && new_array[i - 1][j - 1] <= landmine) { bombs += 1 }//左上
+                if ((i + 1 < range && j + 1 < range) && new_array[i + 1][j + 1] <= landmine) { bombs += 1 }//右下
+                if ((i + 1 < range && j - 1 >= 0) && new_array[i + 1][j - 1] <= landmine) { bombs += 1 }//左下
+
+            } else {
+                console.log("本身市炸彈")
+                bombs = "*"
+            }
+
+            return bombs
+
+
+
+        }
+
+
+
+        function array_compare(a1, a2) {
+            var i = a1.length;
+            if (i != a2.length) return false;
+
+            while (i--) {
+                if (a1[i] !== a2[i]) return false;
+            }
+            return true;
+        };
+
+
+
+        function findLand(arr) {
+            var lands = [],        // the current group
+                visited = new Set  // coords we've seen (set is quicker to lookup)
+
+            // iterate the rows AND columns
+            for (let i = 0; i < arr.length; i++) {
+                for (let j = 0; j < arr[i].length; j++) {
+                    if (visited.has(i + ',' + j)) continue // don't call function on visited coords
+                    let land = traverse(i, j)
+                    if (land) {                // land will be undefined if traverse returns undefined
+                        lands.push(land);
+                    }
+                }
+            }
+            function traverse(x, y, current = []) { // keep current local
+                if (x < 0 || y < 0 || x > arr.length - 1 || y > arr[0].length - 1) {
+                    return;
+                }
+                if (arr[x][y] != 0 || visited.has(x + ',' + y)) {
+                    return;
+                }
+                current.push(x + ',' + y);
+                visited.add(x + ',' + y)
+                traverse(x, y + 1, current);
+                traverse(x, y - 1, current);
+                traverse(x - 1, y, current);
+                traverse(x + 1, y, current);
+                traverse(x + 1, y + 1, current);
+                traverse(x - 1, y - 1, current);
+                traverse(x - 1, y + 1, current);
+                traverse(x + 1, y - 1, current);
+
+                // console.log(current)
+
+                return current   // should hold one complete land mass
+            }
+            return lands
+        }
+
+
+
+
+
+
+
+
+
+
+        //0,0
+        function flood_fill(array) {
+
+            // console.log(array)
+
+
+            for (var w = 0; w < array.length; w++) {
+                console.log(array[w])
+                var coordinate = array[w].replace(/, +/g, ",").split(",").map(Number);
+
+                // console.log("已轉", coordinate)
+
+                var i = coordinate[0]
+                var j = coordinate[1]
+
+                button_show(i, j)
+
+
+
+                //原點
+                //右下range不得超過陣列大小,左上不得負數
+
+                if (j + 1 < range) { button_show(i, j + 1) }//右
+
+
+                if (j - 1 >= 0) { button_show(i, j - 1) }//左
+
+
+                if (i - 1 >= 0) { button_show(i - 1, j) }//上
+
+                if (i + 1 < range) { button_show(i + 1, j) }//下
+
+                if (i - 1 >= 0 && j + 1 < range) { button_show(i - 1, j + 1) }//右上
+
+                if (i - 1 >= 0 && j - 1 >= 0) { button_show(i - 1, j - 1) }//左上
+
+                if (i + 1 < range && j + 1 < range) { button_show(i + 1, j + 1) }//右下
+
+                if (i + 1 < range && j - 1 >= 0) { button_show(i + 1, j - 1) }//左上
+            }
+
+
+
+
+
+
+
+
+
+        }
+
+
+        function button_show(i, j) {
+            var btn = document.getElementById(new_array[i][j]);
+            btn.setAttribute("style", "background-color: white;")
+
+            if (game_array2D[i][j] == 0) {
+                btn.innerText = ""
+            } else {
+                btn.innerText = game_array2D[i][j];
+            }
+
+        }
+
+
+
+        //降維
+        function reduce_array(arr) {
+            return Array.prototype.concat.apply([], arr)
+        }
+
+    </script>
+</head>
+
+<body>
+    <div class="game">
+        <div class="grid" id="grid">
+
+        </div>
+        <form name="Difficulty">
+            <p>難度選擇</p>
+            <div class=area>
+                <input type="radio" name="select" checked="checked" value="9">9X9
+                <input type="radio" name="select" value="16">16X16
+                <input type="radio" name="select" value="7">7X7
+            </div>
+
+
+        </form>
+
+        <div class="footer">
+            <input type="button" id="btn" value="Play">
+
+            <span id="done"></span>
+
+        </div>
+
+
+    </div>
+</body>
+
+
+</html>
