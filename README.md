@@ -4,7 +4,10 @@
 
 程式很亂會在整理
 
+[Play Game](https://jed-4a6g0109.github.io/Landmine/)
+
 參考文獻
+
 https://stackoverflow.com/questions/29770967/string-with-comma-separated-numbers-to-array-of-integer-in-javascript
 
 https://stackoverflow.com/questions/52572917/javascript-flood-fill-algorithm-using-recursion
